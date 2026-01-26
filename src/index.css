@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --color-winifreda-ocean: #0087ba;
+  --color-winifreda-french: #213a7f;
+  --color-winifreda-egypt: #27348b;
+  --color-winifreda-orange: #e78423;
+
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
