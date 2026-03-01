@@ -88,7 +88,6 @@ const ClimaWidget = () => {
       });
   }, []);
 
-  // Función para interpretar los códigos de 7Timer
   const interpretarClima = (weatherName) => {
     switch (weatherName) {
       case "clear":
@@ -131,6 +130,7 @@ const ClimaWidget = () => {
         };
     }
   };
+  
   useEffect(() => {
     if (typeof window !== 'undefined') {
       Object.defineProperty(window, 'info', {
@@ -340,30 +340,9 @@ export default function Home() {
     setMobileMenuOpen(false);
   };
 
-  const [feriadosData, setFeriadosData] = useState([]);
-  const [loadingFeriados, setLoadingFeriados] = useState(true);
-
-  useEffect(() => {
-    const year = new Date().getFullYear();
-
-    /* --- FERIADOS API --- */
-
-    fetch(`https://api.argentinadatos.com/v1/feriados/${year}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setFeriadosData(data);
-        setLoadingFeriados(false);
-      })
-      .catch((err) => {
-        console.error("Error en feriados:", err);
-        setLoadingFeriados(false);
-      });
-  }, []);
-
-  /* --- LÓGICA DEL SEMÁFORO --- */
-
+  /* --- NUEVA LÓGICA DEL SEMÁFORO (Solo abierto fines de semana) --- */
   const fechaActual = new Date();
-  const diaSemana = fechaActual.getDay(); // 0=Dom, 1=Lun... 6=Sab
+  const diaSemana = fechaActual.getDay(); // 0=Dom, 1=Lun, 2=Mar, 3=Mie, 4=Jue, 5=Vie, 6=Sab
 
   const horaActual = new Intl.DateTimeFormat("es-AR", {
     timeZone: "America/Argentina/Buenos_Aires",
@@ -371,34 +350,29 @@ export default function Home() {
     hour12: false,
   }).format(new Date());
 
-  const offsetArgentina = fechaActual.getTimezoneOffset() * 60000;
-  const fechaLocal = new Date(fechaActual.getTime() - offsetArgentina);
-  const hoyString = fechaLocal.toISOString().split("T")[0];
+  const esFinDeSemana = diaSemana === 0 || diaSemana === 6;
 
-  const feriadoEncontrado = feriadosData.find((f) => f.fecha === hoyString);
-
-  const esDiaExtendido =
-    diaSemana === 5 ||
-    diaSemana === 6 ||
-    diaSemana === 0 ||
-    !!feriadoEncontrado;
-
-  const horaApertura = esDiaExtendido ? 11 : 13;
+  let horaApertura = 11; // Por defecto
   const horaCierre = 20;
 
-  const isOpen = horaActual >= horaApertura && horaActual < horaCierre;
-  const todayHours = `${horaApertura}:00 - ${horaCierre}:00`;
-
-  let textoEstado = "";
-  if (feriadoEncontrado) {
-    textoEstado = `Feriado (${feriadoEncontrado.nombre})`;
-  } else if (diaSemana === 0 || diaSemana === 6) {
-    textoEstado = "Fin de Semana";
-  } else {
-    textoEstado = "Día de Semana";
+  if (diaSemana === 6) { // Sábado
+    horaApertura = 11;
+  } else if (diaSemana === 0) { // Domingo
+    horaApertura = 11;
   }
 
-  const mensajeFinal = isOpen ? `Abierto - ${textoEstado}` : `Cerrado!`;
+  const isOpen = esFinDeSemana && (horaActual >= horaApertura && horaActual < horaCierre);
+
+  const todayHours = esFinDeSemana ? `${horaApertura}:00 - ${horaCierre}:00` : "Cerrado";
+
+  let textoEstado = "";
+  if (!esFinDeSemana) {
+    textoEstado = "Cerrado (Lunes a Viernes)";
+  } else {
+    textoEstado = "Fin de Semana";
+  }
+
+  const mensajeFinal = isOpen ? `Abierto - ${textoEstado}` : (!esFinDeSemana ? "CERRADO" : `Cerrado!`);
 
   return (
     <div className="min-h-screen text-winifreda-french font-sans">
@@ -974,109 +948,80 @@ export default function Home() {
                 </h2>
               </div>
               <div className="grid md:grid-cols-2 gap-8">
-                {/* COLUMNA IZQUIERDA: LUNES A JUEVES */}
+                {/* COLUMNA IZQUIERDA: LUNES A VIERNES CERRADO */}
                 <Card className="overflow-hidden bg-white border-slate-200 shadow-sm flex flex-col">
-                  <CardContent className="p-8 flex-1">
+                  <CardContent className="p-8 flex-1 flex flex-col">
                     <div className="flex items-center gap-3 mb-6">
-                      <Calendar className="w-8 h-8 text-sky-600" />
+                      <Calendar className="w-8 h-8 text-red-600" />
                       <h3 className="text-xl font-bold text-winifreda-french leading-tight">
-                        Horarios y Tarifas <br />
-                        <span className="text-sky-600">Lunes a Jueves</span>
+                        Atención <br />
+                        <span className="text-red-600">Lunes a Viernes</span>
                       </h3>
                     </div>
 
-                    {/* Horario */}
-                    <div className="bg-slate-50 p-4 rounded-xl text-center border border-slate-100 mb-6">
-                      <p className="font-bold text-sky-700 uppercase mb-1 text-xs tracking-wider">
-                        Horario de apertura
+                    <div className="bg-red-50 p-6 rounded-xl text-center border border-red-100 mb-6 flex-1 flex flex-col justify-center">
+                      <p className="text-4xl font-bold text-red-600 uppercase">
+                        CERRADO
                       </p>
-                      <p className="text-4xl font-bold text-winifreda-french">
-                        13:00 - 20:00
+                      <p className="text-red-800 mt-4 font-medium">
+                        El parque permanece cerrado al público durante los días de semana.
                       </p>
-                    </div>
-
-                    {/* Tarifas */}
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                        <span className="font-medium text-blue-900">
-                          0 a 4 años
-                        </span>
-                        <span className="font-bold text-lg text-blue-700">
-                          GRATIS
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                        <span className="font-medium text-green-900">
-                          5 a 11 años
-                        </span>
-                        <span className="font-bold text-lg text-green-700">
-                          $10.000
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                        <span className="font-medium text-purple-900">
-                          12 años en adelante
-                        </span>
-                        <span className="font-bold text-lg text-purple-700">
-                          $15.000
-                        </span>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* COLUMNA DERECHA: VIERNES A DOMINGO Y FERIADOS */}
+                {/* COLUMNA DERECHA: FIN DE SEMANA */}
                 <Card className="overflow-hidden bg-white border-slate-200 shadow-sm flex flex-col">
-                  <CardContent className="p-8 flex-1">
-                    <div className="flex items-center gap-3 mb-6">
-                      <Calendar className="w-8 h-8 text-indigo-600" />
-                      <h3 className="text-xl font-bold text-winifreda-french leading-tight">
-                        Horarios y Tarifas <br />
-                        <span className="text-indigo-600">
-                          Viernes, Sábados, Domingos y Feriados
-                        </span>
-                      </h3>
-                    </div>
+  <CardContent className="p-8 flex-1">
+    <div className="flex items-center gap-3 mb-6">
+      <Calendar className="w-8 h-8 text-indigo-600" />
+      <h3 className="text-xl font-bold text-winifreda-french leading-tight">
+        Horarios y Tarifas <br />
+        <span className="text-indigo-600">
+          Sábados y Domingos
+        </span>
+      </h3>
+    </div>
 
-                    {/* Horario */}
-                    <div className="bg-slate-50 p-4 rounded-xl text-center border border-slate-100 mb-6">
-                      <p className="font-bold text-indigo-700 uppercase mb-1 text-xs tracking-wider">
-                        Horario de apertura
-                      </p>
-                      <p className="text-4xl font-bold text-winifreda-french">
-                        11:00 - 20:00
-                      </p>
-                    </div>
+    {/* Horario */}
+    <div className="bg-slate-50 p-4 rounded-xl text-center border border-slate-100 mb-6">
+      <p className="font-bold text-indigo-700 uppercase mb-1 text-xs tracking-wider">
+        Horario de apertura
+      </p>
+      <p className="text-4xl font-bold text-winifreda-french">
+        11:00 - 20:00
+      </p>
+    </div>
 
-                    {/* Tarifas */}
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 bg-blue-50/70 rounded-lg">
-                        <span className="font-medium text-blue-900">
-                          0 a 4 años
+    {/* Tarifas */}
+    <div className="space-y-3 mt-auto">
+      <div className="flex justify-between items-center p-3 bg-blue-50/70 rounded-lg">
+        <span className="font-medium text-blue-900">
+          0 a 4 años
+        </span>
+        <span className="font-bold text-lg text-blue-700">
+          GRATIS
+        </span>
+      </div>
+      <div className="flex justify-between items-center p-3 bg-green-50/70 rounded-lg">
+        <span className="font-medium text-green-900">
+          5 a 11 años
+        </span>
+        <span className="font-bold text-lg text-green-700">
+          $15.000
+        </span>
+      </div>
+      <div className="flex justify-between items-center p-3 bg-purple-50/70 rounded-lg">
+        <span className="font-medium text-purple-900">
+          12 años en adelante
+        </span>
+        <span className="font-bold text-lg text-purple-700">
+          $20.000
                         </span>
-                        <span className="font-bold text-lg text-blue-700">
-                          GRATIS
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-green-50/70 rounded-lg">
-                        <span className="font-medium text-green-900">
-                          5 a 11 años
-                        </span>
-                        <span className="font-bold text-lg text-green-700">
-                          $15.000
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-purple-50/70 rounded-lg">
-                        <span className="font-medium text-purple-900">
-                          12 años en adelante
-                        </span>
-                        <span className="font-bold text-lg text-purple-700">
-                          $20.000
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+      </div>
+    </div>
+  </CardContent>
+</Card>
               </div>
 
               <div className="mt-10 bg-[#E78423]/5 border border-[#E78423]/40 rounded-2xl p-8 text-center shadow-sm">
