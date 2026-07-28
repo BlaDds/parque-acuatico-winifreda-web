@@ -24,7 +24,8 @@ Los cambios hechos fueron:
 
 Frontend: Se agregó la sección "Actividades de Temporada" junto con su botón en el navbar "!Actividades de Invierno". Se cambió el video de fondo en el hero por 4 fotos que se muestran de a una en su lugar, además de cambiarse la imagen BACK que se mostraba de fondo en todo el resto de página.
 
-Backend: Falta aplicar el dinamismo que vendrá desde google docs, para manejar el muestreo de los cambios invernales en otoño/invierno y los cambios de verano en primavera/verano.
+Backend: Aplicado el dinamismo con google sheets;
+Ahora se maneja el muestreo de los cambios invernales en otoño/invierno y los cambios de verano en primavera/verano, desde una plantilla de google sheets correctamente. Además, desde ahí, se puede cambiar tanto las tarifas como el horario de apertura y de cierre.
 
 ## Actualización 26/03/2026
 Frontend: Se actualizó App.jsx para integrar el consumo dinámico de datos.
