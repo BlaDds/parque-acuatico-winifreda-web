@@ -1,0 +1,37 @@
+# Dependencias
+node_modules/
+dist/
+dist-ssr/
+
+# datos dinámicos
+datos_parque.json
+instagram_feed.json
+
+# scripts
+scripts/
+
+# archivos compilados
+*.pyc
+__pycache/__
+
+# archivos con credenciales
+actualizar_datos.php
+config.php
+actualizar_clima.php
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Editor
+.vscode/
+.idea
+.DS_Store
+*.suo
+*.sw?
